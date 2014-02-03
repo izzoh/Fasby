@@ -1,6 +1,6 @@
-const char *facerecAlgorithm = "FaceRecognizer.Fisherfaces";
-//const char *facerecAlgorithm = "FaceRecognizer.Eigenfaces";
-const float UNKNOWN_PERSON_THRESHOLD = 0.7f;
+//const char *facerecAlgorithm = "FaceRecognizer.Fisherfaces";
+const char *facerecAlgorithm = "FaceRecognizer.Eigenfaces";
+const float UNKNOWN_PERSON_THRESHOLD = 0.5f;
 const char *faceCascadeFilename = "lbpcascade_frontalface.xml";
 //const char *faceCascadeFilename = "haarcascade_frontalface_alt_tree.xml";  // Haar face detector.
 //const char *eyeCascadeFilename1 = "haarcascade_lefteye_2splits.xml";   // Best eye detector for open-or-closed eyes.
@@ -19,7 +19,7 @@ const int DESIRED_CAMERA_HEIGHT = 480;
 const double CHANGE_IN_IMAGE_FOR_COLLECTION = 0.3; //change in face expression
 const double CHANGE_IN_SECONDS_FOR_COLLECTION = 1.0; //change in time
 
-const char *WindowName = "Rasby Face Recognition";//name of GUI window
+const char *windowName = "Rasby Face Recognition";//name of GUI window
 const int BORDER = 8;//padding
 const bool preprocessLeftAndRightSeparately = true; 
 bool m_debug = false;
@@ -62,7 +62,7 @@ template <typename T> string toString(T t)
 	out << t;
 	return out.str();
 }
-template <template T> T fromString(string t)
+template <typename T> T fromString(string t)
 {
 	T out;
 	istringstream in(t);
@@ -304,7 +304,224 @@ void recognizeAndTrainUsingWebcam(VideoCapture &videoCapture, CascadeClassifier 
 			}
 		}
 		else if (m_mode == MODE_TRAINING){
+			//check if there is enoughData to train from
+			bool haveEnoughData = true;
+			if (strcmp(facerecAlgorithm, "FaceRecognizer.Fisherfaces")==0) {
+				if ((m_numPersons < 2) || (m_numPersons == 2 && m_latestFaces[1] < 0)){
+					cout <<"Warning: More data needed to train the system. Fisherface needs at least two people to train with."<<endl;
+					haveEnoughData = false;
+				}
+			}
+			if (m_numPersons < 1 || preprocessedFaces.size() <= 0 || preprocessedFaces.size() != faceLabels.size()) {
+				cout <<"Warning: Need some training data before it can be learnt! collect more faces."<<endl;
+				haveEnoughData = false;
+			}
 
+			if (haveEnoughData) {
+				model = learnCollectedFaces(preprocessedFaces, faceLabels, facerecAlgorithm);
+				if (m_debug)
+					showTrainingDebugData(model, faceWidth, faceHeight);
+				//start recognizing
+				m_mode = MODE_RECOGNITION;
+
+
+			}else {
+				//go back to collection mode
+				m_mode = MODE_COLLECT_FACES;
+			}
 		}
+		else if (m_mode == MODE_RECOGNITION) {
+			if (gotFaceAndEyes && (preprocessedFaces.size() > 0) && (preprocessedFaces.size() == faceLabels.size())){
+				//generate a face approximation by back-projecting eignevectors and eigenvalues
+				Mat reconstructedFace;
+				reconstructedFace = reconstructFace(model, preprocessedFace);
+				if (m_debug)
+					if (reconstructedFace.data)
+						imshow("reconstructedFace",reconstructedFace);
+				//verify if the reconstructed face looks like that on the screen
+				double similarity = getSimilarity(preprocessedFace, reconstructedFace);
+				string outputStr;
+				if (similarity < UNKNOWN_PERSON_THRESHOLD) {
+					//identify who is in the preprocessed face image
+					identity = model->predict(preprocessedFace);
+					outputStr = toString(identity);
+				}
+				else {
+					//since the confidence is low, assume it is an unknown person
+					outputStr = "unknown";
+				}
+				cout <<"Identity: "<<outputStr<<". similarity: "<< ((1-similarity)*100) <<"%"<<endl;
+				//Show the confidence rating on rating
+				int cx = (displayedFrame.cols - faceWidth) / 2;
+				Point ptBottomRight = Point(cx - 5, BORDER + faceHeight);
+				Point ptTopLeft = Point(cx - 15, BORDER);
+				//Draw a grey line showing threshold for an unknown person
+				Point ptThreshold = Point(ptTopLeft.x, ptBottomRight.y - (1.0 - UNKNOWN_PERSON_THRESHOLD) * faceHeight);
+				rectangle(displayedFrame, ptThreshold, Point(ptBottomRight.x, ptThreshold.y), CV_RGB(200,200,200), 1, CV_AA);
+				//crop the confidence rating between 0.0 to 1.0
+				double confidenceRatio = 1.0 - min(max(similarity, 0.0), 1.0);
+				Point ptConfidence = Point(ptTopLeft.x, ptBottomRight.y - confidenceRatio * faceHeight);
+				//show light blue confidence bar
+				rectangle(displayedFrame, ptConfidence, ptBottomRight, CV_RGB(0,255,255), CV_FILLED, CV_AA);
+				//show gray border
+				rectangle(displayedFrame, ptTopLeft, ptBottomRight, CV_RGB(200,200,200),1,CV_AA);
+
+			}
+		}
+		else if (m_mode == MODE_DELETE_ALL) {
+			//Restart everything
+			m_selectedPerson = -1;
+			m_numPersons = 0;
+			m_latestFaces.clear();
+			preprocessedFaces.clear();
+			faceLabels.clear();
+			old_preprocessedFace = Mat();
+
+			//Restart in Detection mode.
+			m_mode = MODE_DETECTION;
+		}
+		else {
+			cerr << "ERROR: Invalid run mode " << m_mode <<endl;
+			exit(1);
+		}
+		//help info
+		string help;
+        Rect rcHelp;
+        if (m_mode == MODE_DETECTION)
+            help = "Click [Add Person] when ready to collect faces.";
+        else if (m_mode == MODE_COLLECT_FACES)
+            help = "Click anywhere to train from your " + toString(preprocessedFaces.size()/2) + " faces of " + toString(m_numPersons) + " people.";
+        else if (m_mode == MODE_TRAINING)
+            help = "Please wait while your " + toString(preprocessedFaces.size()/2) + " faces of " + toString(m_numPersons) + " people builds.";
+        else if (m_mode == MODE_RECOGNITION)
+            help = "Click people on the right to add more faces to them, or [Add Person] for someone new.";
+        if (help.length() > 0) {
+            // Draw it with a black background and then again with a white foreground.
+            // Since BORDER may be 0 and we need a negative position, subtract 2 from the border so it is always negative.
+            float txtSize = 0.4;
+            drawString(displayedFrame, help, Point(BORDER, -BORDER-2), CV_RGB(0,0,0), txtSize);  // Black shadow.
+            rcHelp = drawString(displayedFrame, help, Point(BORDER+1, -BORDER-1), CV_RGB(255,255,255), txtSize);  // White text.
+		}
+		if (m_mode >= 0 && m_mode < MODE_END) {
+			string modeStr = "MODE: "+string(MODE_NAMES[m_mode]);
+			drawString(displayedFrame, modeStr, Point(BORDER, -BORDER-2 - rcHelp.height), CV_RGB(0,0,0));       // Black shadow
+            drawString(displayedFrame, modeStr, Point(BORDER+1, -BORDER-1 - rcHelp.height), CV_RGB(0,255,0)); // Green text 
+		}
+		// Show the current preprocessed face in the top-center of the display.
+        int cx = (displayedFrame.cols - faceWidth) / 2;
+        if (preprocessedFace.data) {
+            // Get a BGR version of the face, since the output is BGR color.
+            Mat srcBGR = Mat(preprocessedFace.size(), CV_8UC3);
+            cvtColor(preprocessedFace, srcBGR, CV_GRAY2BGR);
+            // Get the destination ROI (and make sure it is within the image!).
+            //min(m_gui_faces_top + i * faceHeight, displayedFrame.rows - faceHeight);
+            Rect dstRC = Rect(cx, BORDER, faceWidth, faceHeight);
+            Mat dstROI = displayedFrame(dstRC);
+            // Copy the pixels from src to dst.
+            srcBGR.copyTo(dstROI);
+        }
+        // Draw an anti-aliased border around the face, even if it is not shown.
+        rectangle(displayedFrame, Rect(cx-1, BORDER-1, faceWidth+2, faceHeight+2), CV_RGB(200,200,200), 1, CV_AA);
+
+        // Draw the GUI buttons into the main image.
+        m_rcBtnAdd = drawButton(displayedFrame, "Add Person", Point(BORDER, BORDER));
+        m_rcBtnDel = drawButton(displayedFrame, "Delete All", Point(m_rcBtnAdd.x, m_rcBtnAdd.y + m_rcBtnAdd.height), m_rcBtnAdd.width);
+        m_rcBtnDebug = drawButton(displayedFrame, "Debug", Point(m_rcBtnDel.x, m_rcBtnDel.y + m_rcBtnDel.height), m_rcBtnAdd.width);
+
+        // Show the most recent face for each of the collected people, on the right side of the display.
+        m_gui_faces_left = displayedFrame.cols - BORDER - faceWidth;
+        m_gui_faces_top = BORDER;
+        for (int i=0; i<m_numPersons; i++) {
+            int index = m_latestFaces[i];
+            if (index >= 0 && index < (int)preprocessedFaces.size()) {
+                Mat srcGray = preprocessedFaces[index];
+                if (srcGray.data) {
+                    // Get a BGR version of the face, since the output is BGR color.
+                    Mat srcBGR = Mat(srcGray.size(), CV_8UC3);
+                    cvtColor(srcGray, srcBGR, CV_GRAY2BGR);
+                    // Get the destination ROI (and make sure it is within the image!).
+                    int y = min(m_gui_faces_top + i * faceHeight, displayedFrame.rows - faceHeight);
+                    Rect dstRC = Rect(m_gui_faces_left, y, faceWidth, faceHeight);
+                    Mat dstROI = displayedFrame(dstRC);
+                    // Copy the pixels from src to dst.
+                    srcBGR.copyTo(dstROI);
+                }
+            }
+        }
+
+        // Highlight the person being collected, using a red rectangle around their face.
+        if (m_mode == MODE_COLLECT_FACES) {
+            if (m_selectedPerson >= 0 && m_selectedPerson < m_numPersons) {
+                int y = min(m_gui_faces_top + m_selectedPerson * faceHeight, displayedFrame.rows - faceHeight);
+                Rect rc = Rect(m_gui_faces_left, y, faceWidth, faceHeight);
+                rectangle(displayedFrame, rc, CV_RGB(255,0,0), 3, CV_AA);
+            }
+        }
+
+        // Highlight the person that has been recognized, using a green rectangle around their face.
+        if (identity >= 0 && identity < 1000) {
+            int y = min(m_gui_faces_top + identity * faceHeight, displayedFrame.rows - faceHeight);
+            Rect rc = Rect(m_gui_faces_left, y, faceWidth, faceHeight);
+            rectangle(displayedFrame, rc, CV_RGB(0,255,0), 3, CV_AA);
+        }
+
+        // Show the camera frame on the screen.
+        imshow(windowName, displayedFrame);
+
+        // If the user wants all the debug data, show it to them!
+        if (m_debug) {
+            Mat face;
+            if (faceRect.width > 0) {
+                face = cameraFrame(faceRect);
+                if (searchedLeftEye.width > 0 && searchedRightEye.width > 0) {
+                    Mat topLeftOfFace = face(searchedLeftEye);
+                    Mat topRightOfFace = face(searchedRightEye);
+                    imshow("topLeftOfFace", topLeftOfFace);
+                    imshow("topRightOfFace", topRightOfFace);
+                }
+            }
+
+            if (!model.empty())
+                showTrainingDebugData(model, faceWidth, faceHeight);
+        }
+
+        
+        // IMPORTANT: Wait for atleast 20 milliseconds, so that the image can be displayed on the screen!
+        // Also checks if a key was pressed in the GUI window. Note that it should be a "char" to support Linux.
+        char keypress = waitKey(20);  // This is needed if you want to see anything!
+
+        if (keypress == VK_ESCAPE) {   // Escape Key
+            // Quit the program!
+            break;
+        }
+	}//end while loop
+
+}
+
+
+int main(int argc, char *argv[]) {
+	CascadeClassifier faceCascade;
+    CascadeClassifier eyeCascade1;
+    CascadeClassifier eyeCascade2;
+    VideoCapture videoCapture;
+
+	initDetectors(faceCascade, eyeCascade1, eyeCascade2);
+	cout<<endl;
+	cout<<"Press Esc key to quit the program"<<endl;
+	//specify a camera
+	int cameraNumber = 0;
+	if (argc > 1) {
+		cameraNumber = atoi(argv[1]);
 	}
+	//access webcam
+	initWebcam(videoCapture,cameraNumber);
+	//set camera resolutions
+	videoCapture.set(CV_CAP_PROP_FRAME_WIDTH, DESIRED_CAMERA_WIDTH);
+	videoCapture.set(CV_CAP_PROP_FRAME_HEIGHT, DESIRED_CAMERA_HEIGHT);
+	//create gui
+	namedWindow(windowName);
+	//mouse
+	setMouseCallback(windowName, onMouse, 0);
+	recognizeAndTrainUsingWebcam(videoCapture, faceCascade, eyeCascade1, eyeCascade2);
+	return 0;
 }

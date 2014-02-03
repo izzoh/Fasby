@@ -1,9 +1,9 @@
-﻿Build started 1/29/2014 8:59:29 PM.
-     1>Project "C:\Users\izzoh\Documents\Visual Studio 2010\Projects\Faceby\Faceby\Faceby.vcxproj" on node 2 (build target(s)).
+﻿Build started 1/31/2014 12:10:35 AM.
+     1>Project "C:\Users\izzoh\documents\visual studio 2010\Projects\Faceby\Faceby\Faceby.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
-         Creating "Debug\Faceby.unsuccessfulbuild" because "AlwaysCreate" was specified.
+         Touching "Debug\Faceby.unsuccessfulbuild".
        ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt ImageUtils_0.7.cpp detectObject.cpp main.cpp preprocessFace.cpp recognition.cpp
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt detectObject.cpp ImageUtils_0.7.cpp main.cpp preprocessFace.cpp recognition.cpp
          recognition.cpp
      1>c:\opencv\build\include\opencv2\flann\logger.h(66): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdio.h(234) : see declaration of 'fopen'
@@ -11,24 +11,32 @@
      1>c:\opencv\build\include\opencv2\flann\logger.h(66): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdio.h(234) : see declaration of 'fopen'
          main.cpp
-         detectObject.cpp
+     1>c:\opencv\build\include\opencv2\flann\logger.h(66): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdio.h(234) : see declaration of 'fopen'
+     1>c:\users\izzoh\documents\visual studio 2010\projects\faceby\faceby\main.cpp(78): warning C4101: 'e' : unreferenced local variable
+     1>c:\users\izzoh\documents\visual studio 2010\projects\faceby\faceby\main.cpp(87): warning C4101: 'e' : unreferenced local variable
+     1>c:\users\izzoh\documents\visual studio 2010\projects\faceby\faceby\main.cpp(96): warning C4101: 'e' : unreferenced local variable
+     1>c:\users\izzoh\documents\visual studio 2010\projects\faceby\faceby\main.cpp(110): warning C4101: 'e' : unreferenced local variable
+     1>c:\users\izzoh\documents\visual studio 2010\projects\faceby\faceby\main.cpp(359): warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+     1>c:\users\izzoh\documents\visual studio 2010\projects\faceby\faceby\main.cpp(363): warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+     1>c:\users\izzoh\documents\visual studio 2010\projects\faceby\faceby\main.cpp(401): warning C4305: 'initializing' : truncation from 'double' to 'float'
          ImageUtils_0.7.cpp
+         detectObject.cpp
          Generating Code...
        Link:
-         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\izzoh\Documents\Visual Studio 2010\Projects\Faceby\Debug\Faceby.exe" /NOLOGO opencv_calib3d248d.lib opencv_contrib248d.lib opencv_core248d.lib opencv_features2d248d.lib opencv_flann248d.lib opencv_gpu248d.lib opencv_highgui248d.lib opencv_imgproc248d.lib opencv_legacy248d.lib opencv_ml248d.lib opencv_nonfree248d.lib opencv_objdetect248d.lib opencv_photo248d.lib opencv_stitching248d.lib opencv_ts248d.lib opencv_video248d.lib opencv_videostab248d.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:"Debug\Faceby.exe.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"C:\Users\izzoh\Documents\Visual Studio 2010\Projects\Faceby\Debug\Faceby.pdb" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\izzoh\Documents\Visual Studio 2010\Projects\Faceby\Debug\Faceby.lib" /MACHINE:X86 Debug\detectObject.obj
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\izzoh\documents\visual studio 2010\Projects\Faceby\Debug\Faceby.exe" /NOLOGO opencv_calib3d248d.lib opencv_contrib248d.lib opencv_core248d.lib opencv_features2d248d.lib opencv_flann248d.lib opencv_gpu248d.lib opencv_highgui248d.lib opencv_imgproc248d.lib opencv_legacy248d.lib opencv_ml248d.lib opencv_nonfree248d.lib opencv_objdetect248d.lib opencv_photo248d.lib opencv_stitching248d.lib opencv_ts248d.lib opencv_video248d.lib opencv_videostab248d.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:"Debug\Faceby.exe.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"C:\Users\izzoh\documents\visual studio 2010\Projects\Faceby\Debug\Faceby.pdb" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\izzoh\documents\visual studio 2010\Projects\Faceby\Debug\Faceby.lib" /MACHINE:X86 Debug\detectObject.obj
          Debug\ImageUtils_0.7.obj
          Debug\main.obj
          Debug\preprocessFace.obj
          Debug\recognition.obj
-         LINK : C:\Users\izzoh\Documents\Visual Studio 2010\Projects\Faceby\Debug\Faceby.exe not found or not built by the last incremental link; performing full link
-         Faceby.vcxproj -> C:\Users\izzoh\Documents\Visual Studio 2010\Projects\Faceby\Debug\Faceby.exe
+         Faceby.vcxproj -> C:\Users\izzoh\documents\visual studio 2010\Projects\Faceby\Debug\Faceby.exe
        Manifest:
-         C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\mt.exe /nologo /verbose /outputresource:"C:\Users\izzoh\Documents\Visual Studio 2010\Projects\Faceby\Debug\Faceby.exe;#1" /manifest Debug\Faceby.exe.intermediate.manifest
+         C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\mt.exe /nologo /verbose /outputresource:"C:\Users\izzoh\documents\visual studio 2010\Projects\Faceby\Debug\Faceby.exe;#1" /manifest Debug\Faceby.exe.intermediate.manifest
        FinalizeBuildStatus:
          Deleting file "Debug\Faceby.unsuccessfulbuild".
          Touching "Debug\Faceby.lastbuildstate".
-     1>Done Building Project "C:\Users\izzoh\Documents\Visual Studio 2010\Projects\Faceby\Faceby\Faceby.vcxproj" (build target(s)).
+     1>Done Building Project "C:\Users\izzoh\documents\visual studio 2010\Projects\Faceby\Faceby\Faceby.vcxproj" (build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:14.77
+Time Elapsed 00:00:17.06
